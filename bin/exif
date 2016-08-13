@@ -1,0 +1,61 @@
+#!/usr/bin/env node
+
+const args = process.argv.slice(2);
+
+if (!args.length) {
+    console.log('Usage: exif <glob> [--only field[,...]]');
+    process.exit();
+}
+
+console.log(`Parsing EXIF data from ${args}`);
+
+const extract = require('../index.js');
+const argv = require('minimist')(args, {default: {only: ''}});
+const match = argv.only.split(',').map(m => m.toLowerCase()).filter(m => m.length);
+
+extract(argv._, (errors, exif_tree) => {
+    if (errors.length) {
+        console.error('Errors:', errors);
+    }
+
+    exif_tree.forEach(log);
+});
+
+function log(node) {
+    if (this.isRoot) {
+        return;
+    }
+
+    if (this.path.length === 1) {
+        // File path
+        console.log();
+        console.log(`${this.path[0]}:`);
+        return;
+    }
+
+    if (this.key instanceof Number) {
+        // Index of exif object
+        console.log();
+        return;
+    }
+
+    if (match.length && match.indexOf(this.key.toLowerCase()) < 0) {
+        // No match
+        return;
+    }
+
+    if (this.notLeaf) {
+        // Category
+        console.log(`${Array(this.path.length).join(' ')}${this.key}:`);
+        return;
+    }
+
+    if (!Object.keys(node).length) {
+        // Category with no contents
+        return;
+    }
+
+    // Leaf
+    console.log(`${Array(this.path.length).join(' ')}${this.key}: ${node}`);
+}
+
