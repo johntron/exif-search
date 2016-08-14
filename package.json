@@ -1,6 +1,6 @@
 {
   "name": "exif-search",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Search images for EXIF fields",
   "main": "index.js",
   "author": "John Syrinek",
